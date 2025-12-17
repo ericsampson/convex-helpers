@@ -1,5 +1,6 @@
 import { getFunctionName } from "convex/server";
 import type {
+  ArgsAndOptions,
   FunctionReference,
   FunctionArgs,
   FunctionReturnType,
@@ -173,25 +174,38 @@ export class ConvexClientFake implements ConvexClientInterface {
       }
     }
 
-    // Return unsubscribe function
-    return () => {
+    // Return unsubscribe function with all required properties
+    const unsubscribe = () => {
       const subs = this.subscriptions.get(name);
       if (subs) {
         subs.delete(subscription);
       }
     };
+
+    const result: Unsubscribe<Query["_returnType"]> =
+      unsubscribe as Unsubscribe<Query["_returnType"]>;
+    result.unsubscribe = unsubscribe;
+    result.getCurrentValue = () => {
+      const queryFn = this.queries[name];
+      if (queryFn) {
+        return queryFn(args) as Query["_returnType"] | undefined;
+      }
+      return undefined;
+    };
+
+    return result;
   }
 
   mutation<Mutation extends FunctionReference<"mutation">>(
     mutation: Mutation,
-    args: FunctionArgs<Mutation>,
-    _options?: MutationOptions,
+    ...argsAndOptions: ArgsAndOptions<Mutation, MutationOptions>
   ): Promise<Awaited<FunctionReturnType<Mutation>>> {
+    const [args] = argsAndOptions as [FunctionArgs<Mutation>];
     const name = getFunctionName(mutation);
     const mutationFn = this.mutations[name];
     if (mutationFn) {
       return Promise.resolve(
-        mutationFn(args) as Awaited<FunctionReturnType<Mutation>>,
+        mutationFn(args ?? {}) as Awaited<FunctionReturnType<Mutation>>,
       );
     }
     return Promise.reject(
@@ -203,13 +217,14 @@ export class ConvexClientFake implements ConvexClientInterface {
 
   action<Action extends FunctionReference<"action">>(
     action: Action,
-    args: FunctionArgs<Action>,
+    ...argsAndOptions: ArgsAndOptions<Action, Record<string, never>>
   ): Promise<Awaited<FunctionReturnType<Action>>> {
+    const [args] = argsAndOptions as [FunctionArgs<Action>];
     const name = getFunctionName(action);
     const actionFn = this.actions[name];
     if (actionFn) {
       return Promise.resolve(
-        actionFn(args) as Awaited<FunctionReturnType<Action>>,
+        actionFn(args ?? {}) as Awaited<FunctionReturnType<Action>>,
       );
     }
     return Promise.reject(
@@ -221,12 +236,15 @@ export class ConvexClientFake implements ConvexClientInterface {
 
   query<Query extends FunctionReference<"query">>(
     query: Query,
-    args: Query["_args"],
+    ...argsAndOptions: ArgsAndOptions<Query, Record<string, never>>
   ): Promise<Awaited<Query["_returnType"]>> {
+    const [args] = argsAndOptions as [FunctionArgs<Query>];
     const name = getFunctionName(query);
     const queryFn = this.queries[name];
     if (queryFn) {
-      return Promise.resolve(queryFn(args) as Awaited<Query["_returnType"]>);
+      return Promise.resolve(
+        queryFn(args ?? {}) as Awaited<Query["_returnType"]>,
+      );
     }
     return Promise.reject(
       new Error(
