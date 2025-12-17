@@ -1,6 +1,6 @@
 import Counter from "./Counter";
 import { render } from "@testing-library/react";
-import { ConvexReactClientFake } from "../fakeConvexClient/fakeConvexClient";
+import { ConvexReactClientFake } from "convex-helpers/react/testing";
 import { ConvexProvider } from "convex/react";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { api } from "../../convex/_generated/api";

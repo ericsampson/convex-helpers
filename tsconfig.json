@@ -13,7 +13,15 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "convex/browser": ["../convex-js/src/browser/index.ts"],
+      "convex/react": ["../convex-js/src/react/index.ts"],
+      "convex/server": ["../convex-js/src/server/index.ts"],
+      "convex/values": ["../convex-js/src/values/index.ts"],
+      "convex-helpers/*": ["./packages/convex-helpers/*"]
+    }
   },
   "include": ["./src", "./convex", "./packages/convex-helpers/**/*.test.ts"]
 }

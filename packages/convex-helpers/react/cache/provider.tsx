@@ -1,5 +1,6 @@
 "use client";
-import { useConvex, ConvexReactClient } from "convex/react";
+import { useConvex } from "convex/react";
+import type { ConvexReactClientInterface } from "convex/browser";
 import type { FunctionArgs, FunctionReference } from "convex/server";
 import type { FC, PropsWithChildren } from "react";
 import { createContext, useMemo } from "react";
@@ -83,12 +84,12 @@ type CachedQuery = {
 class CacheRegistry {
   queries: Map<QueryKey, CachedQuery>;
   subs: Map<SubKey, QueryKey>;
-  convex: ConvexReactClient;
+  convex: ConvexReactClientInterface;
   timeout: number;
   maxIdleEntries: number;
   idle: number;
 
-  constructor(convex: ConvexReactClient, options: ConvexQueryCacheOptions) {
+  constructor(convex: ConvexReactClientInterface, options: ConvexQueryCacheOptions) {
     this.queries = new Map();
     this.subs = new Map();
     this.convex = convex;
